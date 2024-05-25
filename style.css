@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Concert+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Concert+One&family=Kode+Mono:wght@400..700&display=swap');
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Concert One', sans-serif;
+	font-weight: 400;
+	font-style: normal;
+}
+body {
+	overflow: hidden;
+}
+.container {
+	display: flex;
+	gap: 10px;
+	padding: 10px;
+	box-shadow: 0 0 10px #3f180b inset;
+	background: #88421f;
+}
+.plantsContainer {
+	display: flex;
+	gap: 20px;
+	padding: 10px 20px;
+	list-style: none;
+	width: fit-content;
+	background: #692f16;
+	border-radius: 10px;
+	box-shadow: 0 0 10px #3f180b inset;
+
+	& .card {
+		background: #abc897;
+		padding: 5px;
+		border-radius: 5px;
+		display: grid;
+		place-content: center;
+		gap: 5px;
+		& .containerImg {
+			background: #effcf9;
+			height: 75px;
+			width: 75px;
+			display: grid;
+			place-items: center;
+			padding: 10px 0;
+			border-radius: 3px;
+
+			& img {
+				object-fit: cover;
+				aspect-ratio: 1/1;
+				height: 50px;
+				width: 50px;
+			}
+		}
+		& h4 {
+			background: #effcf9;
+			font-size: 0.7rem;
+			text-align: center;
+			border-radius: 2px;
+		}
+		& .costo {
+			font-family: 'Concert One', sans-serif;
+			font-weight: 400;
+			font-style: normal;
+			background: #effcf9;
+			border-radius: 3px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			& img {
+				object-fit: cover;
+				aspect-ratio: 1/1;
+				height: 20px;
+				width: 20px;
+			}
+		}
+	}
+	& .card.selected {
+		background: #bc570a8d;
+	}
+}
+input {
+	display: none;
+}
+
+.containerSun {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 20px;
+	background: #692f16;
+	padding: 10px;
+	border-radius: 10px;
+	box-shadow: 0 0 10px #3f180b inset;
+
+	& div {
+		padding: 5px;
+		/* background: #88421f; */
+		overflow: hidden;
+		border-radius: 100%;
+		border: 7px solid #88421f;
+		height: 75px;
+		width: 75px;
+		display: grid;
+		place-content: center;
+		box-shadow: 0 0 10px #3f180b inset;
+		& img {
+			height: 70px;
+			width: auto;
+			aspect-ratio: 1/1;
+			object-fit: cover;
+		}
+	}
+	& .soles {
+		font-size: 25px;
+		text-align: center;
+		padding: 0 20px;
+		background: #e7e3aa;
+		width: 80px;
+	}
+}

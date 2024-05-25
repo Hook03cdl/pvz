@@ -1,24 +1,30 @@
-// Definición de las clases de Plants y Zombies
+let girasol = null;
+let lanzaguisantes = null;
+let zombie = null;
+let sol = null;
 class Plant {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
+	constructor(x, y, width_ = 60, height_ = 70) {
+		this.x = x - width_ / 2;
+		this.y = y - height_ / 2;
 		this.velocidad = 5;
 		this.proyectiles = [];
 		this.rango = width;
+		this.width_ = width_;
+		this.height_ = height_;
 	}
 
 	mostrar() {
 		fill('green');
-		rect(this.x, this.y, 50, 50);
+		rect(this.x, this.y, this.width_, this.height_);
+		image(lanzaguisantes, this.x, this.y, this.width_, this.height_);
 		this.proyectiles.forEach((proyectil) => {
-			fill('green');
-			rect(proyectil.x, proyectil.y, 20, 20);
+			fill('#91ce2d');
+			circle(proyectil.x, proyectil.y + 25, 20);
 		});
 	}
 
 	shot() {
-		this.proyectiles.push({ x: this.x + 50, y: this.y });
+		this.proyectiles.push({ x: this.x + this.width_, y: this.y });
 	}
 
 	actualizarProyectiles(zombies) {
@@ -65,34 +71,31 @@ class Girasol extends Plant {
 	constructor(x, y) {
 		super(x, y);
 		this.velocidad = 0;
+		this.ultimoSol = millis(); // Mover esto al constructor
 	}
 
 	mostrar() {
 		fill('yellow');
-		ellipse(this.x, this.y, 50, 50);
-		if (frameCount % (60 * 5) === 0) {
+		rect(this.x, this.y, this.width_, this.height_);
+		image(girasol, this.x, this.y, this.width_, this.height_);
+		if (millis() - this.ultimoSol >= 1000 * 15) {
 			this.generarSol();
+			this.ultimoSol = millis();
 		}
-		this.proyectiles.forEach((sol, index) => {
-			fill('red');
-			ellipse(sol.x, sol.y, 30, 30);
-			if (sol.y >= this.y - 50) {
-				sol.y -= 1; // Mover el sol hacia arriba
-			}
-			sol.tiempoVida--; // Disminuir el tiempo de vida del sol
-			if (sol.tiempoVida <= 0) {
-				this.proyectiles.splice(index, 1); // Eliminar el sol si su tiempo de vida ha terminado
-			}
+		this.proyectiles.forEach((s) => {
+			// fill('red');
+			// rect(s.x, s.y, 40, 40); // Dibuja un s cuadrado
+			image(sol, s.x, s.y, 40, 40); // Dibuja un sol cuadrado
 		});
 	}
 
 	generarSol() {
-		let angulo = random(0, 2 * PI); // Un ángulo aleatorio
-		let radio = random(20, 50); // Una distancia aleatoria desde el centro del girasol
-		let x = this.x + radio * cos(angulo);
-		let y = this.y + radio * sin(angulo);
-		this.proyectiles.push({ x: x, y: y, tiempoVida: 900 });
+		let x = this.x + random(this.width_);
+		let y = this.y + random(this.height_);
+		this.proyectiles.push({ x: x - 20, y: y - 20, tiempoVida: 900 });
 	}
+	detectarZombies(zombies) {}
+	actualizarProyectiles(zombies) {}
 }
 
 class Zombie {
@@ -105,25 +108,42 @@ class Zombie {
 
 	mostrar() {
 		fill('purple');
-		rect(this.x, this.y, 50, 100);
+		rect(this.x, this.y, 40, 90);
+		image(zombie, this.x, this.y, 40, 90);
 	}
 
 	mover() {
 		this.x -= this.velocidad;
 	}
+	colision(plantas) {
+		for (let p of plantas) {
+			if (
+				this.x < p.x + p.width_ &&
+				this.x + 50 > p.x &&
+				this.y < p.y + p.height_ &&
+				this.y + 100 > p.y
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
 
 class Maps {
-	constructor() {}
-	draw() {
-		for (let i = 0; i <= 5; i++) {
-			for (let j = 0; j <= 9; j++) {
-				fill(200);
-				rect(width_ * j, height_ * i, width_, height_);
-			}
-		}
+	constructor() {
+		this.mapa = Array(5)
+			.fill(false)
+			.map(() => Array(10).fill(false));
 	}
-	isBusy(plant) {}
+	draw() {
+		this.mapa.map((col, i) => {
+			col.map((row, j) => {
+				fill(200);
+				rect(100 + width_ * j, height_ * i, width_, height_);
+			});
+		});
+	}
 }
 
 let plants = [];
@@ -133,13 +153,24 @@ var height_;
 var width_;
 let seleccionado = null;
 let tiempoRecarga = 0;
-let contadorSoles = 0;
+let contadorSoles = 50;
+let marcadorSoles;
+
+document.addEventListener('DOMContentLoaded', () => {
+	marcadorSoles = document.querySelector('.soles');
+});
+function preload() {
+	girasol = loadImage('img/girasol.png');
+	lanzaguisantes = loadImage('img/lanzaguisantes.png');
+	zombie = loadImage('img/zombie.png');
+	sol = loadImage('img/sol.png');
+}
 
 function setup() {
-	createCanvas(800, 600);
+	createCanvas(900, 500);
 	height_ = height / 5;
-	width_ = width / 9;
-	console.log(width);
+	width_ = width / 10;
+	console.log(width_);
 }
 
 function draw() {
@@ -153,57 +184,70 @@ function draw() {
 	// Mostrar y mover los zombies
 	for (let z of zombies) {
 		z.mostrar();
-		z.mover();
+		if (!z.colision(plants)) {
+			z.mover();
+		}
 		if (z.vida <= 0) {
 			let index = zombies.indexOf(z);
 			zombies.splice(index, 1);
 		}
 	}
 
+	// Mostrar las plantas y actualizar los proyectiles
 	for (let p of plants) {
 		p.mostrar();
 		p.actualizarProyectiles(zombies);
 		p.detectarZombies(zombies);
 	}
+	marcadorSoles.innerText = contadorSoles;
 }
 
 function mouseClicked() {
-	// Verificar si se ha hecho clic en un sol
+	if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
+		return;
+	}
 	for (let p of plants) {
 		if (p instanceof Girasol) {
 			for (let i = 0; i < p.proyectiles.length; i++) {
 				let sol = p.proyectiles[i];
-				let distancia = dist(mouseX, mouseY, sol.x, sol.y);
-				if (distancia < 15) {
-					contadorSoles++;
+				let distancia = dist(mouseX, mouseY, sol.x + 20, sol.y + 20);
+				if (distancia < 20) {
+					contadorSoles += 25;
 					p.proyectiles.splice(i, 1);
-					break;
+					return;
 				}
 			}
 		}
 	}
 
+	// Colocar una planta solo si no se recogió un sol
 	if (seleccionado && tiempoRecarga <= 0) {
 		let fila = Math.floor(mouseY / height_); // Redondea a la fila más cercana
 		let columna = Math.floor(mouseX / width_); // Redondea a la columna más cercana
-		let x = columna * width_ + width_ / 2;
-		let y = fila * height_ + height_ / 2;
 
 		// Verificar si ya hay una planta en esta casilla
-		let casillaOcupada = plants.some((p) => p.x === x && p.y === y);
-		if (casillaOcupada) {
+		if (map.mapa[fila][columna]) {
 			return; // No agregar una nueva planta si la casilla ya está ocupada
 		}
 
+		let x = columna * width_ + width_ / 2;
+		let y = fila * height_ + height_ / 2;
 		let planta;
 		if (seleccionado === 'girasol') {
 			planta = new Girasol(x, y);
 			tiempoRecarga = 90; // Tiempo de recarga para el girasol
 		} else if (seleccionado === 'lanzaguisantes') {
-			planta = new Plant(x - 25, y - 25);
+			planta = new Plant(x, y);
 			tiempoRecarga = 60; // Tiempo de recarga para la planta lanzaguisantes
 		}
 		plants.push(planta);
+		map.mapa[fila][columna] = true; // Marcar la casilla como ocupada
+		document
+			.querySelector('input[name="plantas"]:checked')
+			.closest('div')
+			.classList.remove('selected');
+		document.querySelector('input[name="plantas"]:checked').checked = false;
+		seleccionado = null;
 	}
 }
 
@@ -221,3 +265,24 @@ setInterval(() => {
 		contadorZombies++;
 	}
 }, 5000);
+
+document.addEventListener('DOMContentLoaded', () => {
+	// Obtén todos los inputs de tipo radio
+	let radios = document.querySelectorAll('input[type="radio"]');
+
+	// Itera sobre cada input
+	radios.forEach((radio) => {
+		// Agrega un event listener para el evento 'change'
+		radio.addEventListener('change', function () {
+			// Elimina la clase 'selected' de todos los elementos li
+			document.querySelectorAll('.plantsContainer div').forEach((card) => {
+				card.classList.remove('selected');
+			});
+
+			// Si el input está seleccionado, agrega la clase 'selected' al elemento li padre
+			if (this.checked) {
+				this.closest('div').classList.add('selected');
+			}
+		});
+	});
+});

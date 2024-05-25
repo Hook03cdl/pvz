@@ -6,51 +6,58 @@
 		<title>pvz</title>
 		<script src="https://cdn.jsdelivr.net/npm/p5@1.9.3/lib/p5.js"></script>
 		<script src="/script.js"></script>
-		<style>
-			* {
-				margin: 0;
-				padding: 0;
-				box-sizing: border-box;
-			}
-			body {
-				overflow: hidden;
-			}
-			.plantsContainer {
-				display: flex;
-				& img {
-					object-fit: cover;
-					aspect-ratio: 1/1;
-					height: 100px;
-					width: 100px;
-				}
-			}
-		</style>
+		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<ul class="plantsContainer">
-			<li>
-				<label>
-					<img src="/img/girasol.png" alt="" />
-					<input type="radio" name="plantas" value="girasol" />
-				</label>
-			</li>
-			<li>
-				<label>
-					<img src="/img/lanzaguisantes.png" alt="" />
-
-					<input type="radio" name="plantas" value="lanzaguisantes" />
-				</label>
-			</li>
-			<li>
-				<label><input type="radio" name="plantas" value="" /></label>
-			</li>
-			<li>
-				<label><input type="radio" name="plantas" value="" /></label>
-			</li>
-			<li>
-				<label><input type="radio" name="plantas" value="" /></label>
-			</li>
-		</ul>
+		<div class="container">
+			<div class="containerSun">
+				<div>
+					<img src="/img/sol.png" alt="" />
+				</div>
+				<span class="soles">50</span>
+			</div>
+			<ul class="plantsContainer">
+				<li>
+					<label>
+						<div class="card">
+							<h4>Girasol</h4>
+							<div class="containerImg">
+								<img src="/img/girasol.png" alt="" />
+							</div>
+							<div class="costo">
+								<img src="/img/sol.png" alt="" />
+								<span>50</span>
+							</div>
+							<input type="radio" name="plantas" value="girasol" />
+						</div>
+					</label>
+				</li>
+				<li>
+					<label>
+						<div class="card">
+							<h4>Lanzaguisantes</h4>
+							<div class="containerImg">
+								<img src="/img/lanzaguisantes.png" alt="" />
+							</div>
+							<div class="costo">
+								<img src="/img/sol.png" alt="" />
+								<span>100</span>
+							</div>
+							<input type="radio" name="plantas" value="lanzaguisantes" />
+						</div>
+					</label>
+				</li>
+				<li>
+					<label><input type="radio" name="plantas" value="" /></label>
+				</li>
+				<li>
+					<label><input type="radio" name="plantas" value="" /></label>
+				</li>
+				<li>
+					<label><input type="radio" name="plantas" value="" /></label>
+				</li>
+			</ul>
+		</div>
 		<main></main>
 	</body>
 </html>
