@@ -118,4 +118,7 @@ input {
 		background: #e7e3aa;
 		width: 80px;
 	}
+	main {
+		height: 100%;
+	}
 }

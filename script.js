@@ -3,7 +3,7 @@ let lanzaguisantes = null;
 let zombie = null;
 let sol = null;
 class Plant {
-	constructor(x, y, width_ = 60, height_ = 70) {
+	constructor(x, y, width_ = 50, height_ = 60) {
 		this.x = x - width_ / 2;
 		this.y = y - height_ / 2;
 		this.velocidad = 5;
@@ -38,12 +38,10 @@ class Plant {
 		for (let j = 0; j < zombies.length; j++) {
 			for (let i = 0; i < this.proyectiles.length; i++) {
 				if (
-					dist(
-						this.proyectiles[i].x,
-						this.proyectiles[i].y,
-						zombies[j].x,
-						zombies[j].y
-					) < 60
+					this.proyectiles[i].x >= zombies[j].x &&
+					this.proyectiles[i].x <= zombies[j].x + 50 &&
+					this.proyectiles[i].y >= zombies[j].y &&
+					this.proyectiles[i].y <= zombies[j].y + 100
 				) {
 					zombies[j].vida--;
 					this.proyectiles.splice(i, 1);
@@ -78,7 +76,7 @@ class Girasol extends Plant {
 		fill('yellow');
 		rect(this.x, this.y, this.width_, this.height_);
 		image(girasol, this.x, this.y, this.width_, this.height_);
-		if (millis() - this.ultimoSol >= 1000 * 15) {
+		if (millis() - this.ultimoSol >= 1000 * 20) {
 			this.generarSol();
 			this.ultimoSol = millis();
 		}
@@ -92,7 +90,7 @@ class Girasol extends Plant {
 	generarSol() {
 		let x = this.x + random(this.width_);
 		let y = this.y + random(this.height_);
-		this.proyectiles.push({ x: x - 20, y: y - 20, tiempoVida: 900 });
+		this.proyectiles.push({ x: x - 20, y: y - 20, tiempoVida: millis() });
 	}
 	detectarZombies(zombies) {}
 	actualizarProyectiles(zombies) {}
@@ -102,14 +100,14 @@ class Zombie {
 	constructor(x, y, vida = 5) {
 		this.x = x;
 		this.y = y;
-		this.velocidad = 0.4;
+		this.velocidad = 0.3;
 		this.vida = vida;
 	}
 
 	mostrar() {
 		fill('purple');
-		rect(this.x, this.y, 40, 90);
-		image(zombie, this.x, this.y, 40, 90);
+		rect(this.x, this.y, 50, 90);
+		image(zombie, this.x, this.y, 70, 100);
 	}
 
 	mover() {
@@ -134,13 +132,19 @@ class Maps {
 	constructor() {
 		this.mapa = Array(5)
 			.fill(false)
-			.map(() => Array(10).fill(false));
+			.map(() => Array(9).fill(false));
 	}
 	draw() {
 		this.mapa.map((col, i) => {
 			col.map((row, j) => {
-				fill(200);
-				rect(100 + width_ * j, height_ * i, width_, height_);
+				let grass = null;
+				if (i % 2 == 0) {
+					grass = j % 2 == 0 ? grass1 : grass2;
+					// fill(100);
+				} else {
+					grass = j % 2 == 0 ? grass2 : grass1;
+				}
+				image(grass, width_ + width_ * j, height_ * i, width_, height_);
 			});
 		});
 	}
@@ -164,6 +168,9 @@ function preload() {
 	lanzaguisantes = loadImage('img/lanzaguisantes.png');
 	zombie = loadImage('img/zombie.png');
 	sol = loadImage('img/sol.png');
+	grass1 = loadImage('img/grass1.png');
+	grass2 = loadImage('img/grass2.png');
+	grass3 = loadImage('img/grass3.png');
 }
 
 function setup() {
@@ -198,6 +205,15 @@ function draw() {
 		p.mostrar();
 		p.actualizarProyectiles(zombies);
 		p.detectarZombies(zombies);
+
+		if (p instanceof Girasol) {
+			for (let i = p.proyectiles.length - 1; i >= 0; i--) {
+				let s = p.proyectiles[i];
+				if (millis() - s.tiempoVida >= 15000) {
+					p.proyectiles.splice(i, 1);
+				}
+			}
+		}
 	}
 	marcadorSoles.innerText = contadorSoles;
 }
@@ -220,7 +236,6 @@ function mouseClicked() {
 		}
 	}
 
-	// Colocar una planta solo si no se recogió un sol
 	if (seleccionado && tiempoRecarga <= 0) {
 		let fila = Math.floor(mouseY / height_); // Redondea a la fila más cercana
 		let columna = Math.floor(mouseX / width_); // Redondea a la columna más cercana
@@ -260,26 +275,20 @@ let limiteZombies = 10;
 setInterval(() => {
 	if (contadorZombies < limiteZombies) {
 		let fila = Math.floor(random(5)); // Elige una fila aleatoria entre 0 y 4
-		let zombie = new Zombie(width, fila * height_ + 10);
+		let zombie = new Zombie(width, fila * height_);
 		zombies.push(zombie);
 		contadorZombies++;
 	}
 }, 5000);
 
 document.addEventListener('DOMContentLoaded', () => {
-	// Obtén todos los inputs de tipo radio
 	let radios = document.querySelectorAll('input[type="radio"]');
-
-	// Itera sobre cada input
 	radios.forEach((radio) => {
-		// Agrega un event listener para el evento 'change'
 		radio.addEventListener('change', function () {
-			// Elimina la clase 'selected' de todos los elementos li
 			document.querySelectorAll('.plantsContainer div').forEach((card) => {
 				card.classList.remove('selected');
 			});
 
-			// Si el input está seleccionado, agrega la clase 'selected' al elemento li padre
 			if (this.checked) {
 				this.closest('div').classList.add('selected');
 			}
