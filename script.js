@@ -1,25 +1,97 @@
-let girasol = null;
-let lanzaguisantes = null;
-let zombie = null;
+let girasol = [];
+let lanzaguisantes = [];
+let repetidora = [];
+let nuez = [];
+let zombie = { eat: [], walk: [] };
+let zombieFlag = { eat: [], walk: [] };
+let zombieBucket = { eat: [], walk: [] };
+let zombieCone = { eat: [], walk: [] };
+let floor = null;
+let grass1 = null,
+	grass2 = null;
+let lawnmower = null;
+
 let sol = null;
-class Plant {
-	constructor(x, y, width_ = 50, height_ = 60) {
+let nivel = [
+	[10, 15, 20],
+	[15, 20, 25],
+	[20, 25, 30],
+];
+
+class Sol {
+	constructor(x, y) {
+		this.finish = y + 50;
+		this.x = x;
+		this.y = y;
+	}
+	mostrar() {
+		image(sol, this.x, this.y, 40, 40);
+		if (this.y <= this.finish) {
+			this.y++;
+		}
+	}
+}
+
+class Podadora {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+		this.isColision = false;
+		this.velocidad = 5;
+	}
+	mostrar() {
+		if (this.isColision) {
+			this.x += this.velocidad;
+		}
+		image(lawnmower, this.x, this.y, width_, height_ - 50);
+	}
+	colision(zombie) {
+		for (let z of zombie) {
+			if (dist(this.x, this.y, z.x, z.y) < width_ - 50) {
+				z.vida = 0;
+				this.isColision = true;
+			}
+		}
+	}
+}
+
+class Plantas {
+	constructor(x, y, columna, fila, img, width_ = 50, height_ = 60, vida = 10) {
 		this.x = x - width_ / 2;
 		this.y = y - height_ / 2;
-		this.velocidad = 5;
+		this.velocidad = 10;
 		this.proyectiles = [];
 		this.rango = width;
 		this.width_ = width_;
 		this.height_ = height_;
+		this.vida = vida;
+		this.currentImg = 0;
+		this.img = img;
+		this.columna = columna;
+		this.fila = fila;
 	}
 
 	mostrar() {
-		fill('green');
-		rect(this.x, this.y, this.width_, this.height_);
-		image(lanzaguisantes, this.x, this.y, this.width_, this.height_);
+		// fill('green');
+		// rect(this.x, this.y, this.width_, this.height_);
+		if (this.img[this.currentImg] !== undefined) {
+			image(
+				this.img[this.currentImg],
+				this.x,
+				this.y,
+				this.width_,
+				this.height_
+			);
+		}
+		if (frameCount % 12 == 0) {
+			this.currentImg++;
+		}
+		if (this.currentImg >= this.img.length - 1) {
+			this.currentImg = 0;
+		}
 		this.proyectiles.forEach((proyectil) => {
 			fill('#91ce2d');
-			circle(proyectil.x, proyectil.y + 25, 20);
+			circle(proyectil.x, proyectil.y + 25, 25);
 		});
 	}
 
@@ -65,24 +137,36 @@ class Plant {
 	}
 }
 
-class Girasol extends Plant {
-	constructor(x, y) {
-		super(x, y);
+class Girasol extends Plantas {
+	constructor(x, y, columna, fila, img, width_, height_) {
+		super(x, y, columna, fila, img, width_, height_);
 		this.velocidad = 0;
-		this.ultimoSol = millis(); // Mover esto al constructor
+		this.ultimoSol = millis();
+		this.currentImg = 0;
 	}
 
 	mostrar() {
-		fill('yellow');
-		rect(this.x, this.y, this.width_, this.height_);
-		image(girasol, this.x, this.y, this.width_, this.height_);
+		if (this.img[this.currentImg] !== undefined) {
+			image(
+				this.img[this.currentImg],
+				this.x,
+				this.y,
+				this.width_,
+				this.height_
+			);
+		}
+		if (this.currentImg >= this.img.length - 1) {
+			this.currentImg = 0;
+		}
+
+		if (frameCount % 12 == 0) {
+			this.currentImg++;
+		}
 		if (millis() - this.ultimoSol >= 1000 * 20) {
 			this.generarSol();
 			this.ultimoSol = millis();
 		}
 		this.proyectiles.forEach((s) => {
-			// fill('red');
-			// rect(s.x, s.y, 40, 40); // Dibuja un s cuadrado
 			image(sol, s.x, s.y, 40, 40); // Dibuja un sol cuadrado
 		});
 	}
@@ -95,19 +179,46 @@ class Girasol extends Plant {
 	detectarZombies(zombies) {}
 	actualizarProyectiles(zombies) {}
 }
-
+class Nuez extends Plantas {
+	constructor(x, y, columna, fila, width_, height_) {
+		super(x, y, columna, fila, width_, height_);
+		this.vida = 20;
+		this.currentImg = 0;
+	}
+	mostrar() {
+		image(nuez[this.currentImg], this.x, this.y, width_, height_);
+		if (frameCount % 40 == 0) {
+			this.currentImg++;
+		}
+		if (this.currentImg >= nuez.length - 1) {
+			this.currentImg = 0;
+		}
+	}
+	detectarZombies(zombies) {}
+	actualizarProyectiles(zombies) {}
+}
 class Zombie {
-	constructor(x, y, vida = 5) {
+	constructor(x, y, imgWalk, imgEat) {
 		this.x = x;
 		this.y = y;
-		this.velocidad = 0.3;
-		this.vida = vida;
+		this.velocidad = 0.5;
+		this.vida = 10;
+		this.currentImg = 0;
+		this.imgWalk = imgWalk;
+		this.imgEat = imgEat;
+		this.img = imgWalk;
 	}
 
 	mostrar() {
-		fill('purple');
-		rect(this.x, this.y, 50, 90);
-		image(zombie, this.x, this.y, 70, 100);
+		if (this.img[this.currentImg] !== undefined) {
+			image(this.img[this.currentImg], this.x, this.y, width_, height_);
+		}
+		if (frameCount % 12 == 0) {
+			this.currentImg++;
+		}
+		if (this.currentImg >= this.img.length - 1) {
+			this.currentImg = 0;
+		}
 	}
 
 	mover() {
@@ -115,16 +226,21 @@ class Zombie {
 	}
 	colision(plantas) {
 		for (let p of plantas) {
-			if (
-				this.x < p.x + p.width_ &&
-				this.x + 50 > p.x &&
-				this.y < p.y + p.height_ &&
-				this.y + 100 > p.y
-			) {
+			if (dist(this.x, this.y, p.x, p.y) < 30) {
+				this.img = this.imgEat;
+				if (frameCount % 60 == 0) {
+					p.vida--;
+				}
 				return true;
 			}
 		}
+		this.img = this.imgWalk;
 		return false;
+	}
+}
+class ZombieBucket extends Zombie {
+	constructor() {
+		super(x, y);
 	}
 }
 
@@ -135,6 +251,10 @@ class Maps {
 			.map(() => Array(9).fill(false));
 	}
 	draw() {
+		fill(150);
+		for (let i = 0; i < 5; i++) {
+			image(floor, 0, height_ * i, width_, height_);
+		}
 		this.mapa.map((col, i) => {
 			col.map((row, j) => {
 				let grass = null;
@@ -150,85 +270,167 @@ class Maps {
 	}
 }
 
-let plants = [];
+let plantas = [];
 let zombies = [];
+let podadoras = [];
+let soles = [];
 let map = new Maps();
 var height_;
 var width_;
 let seleccionado = null;
 let tiempoRecarga = 0;
-let contadorSoles = 50;
+let contadorSoles = 200;
 let marcadorSoles;
+let perdiste = false;
+let zombieP = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 	marcadorSoles = document.querySelector('.soles');
 });
 function preload() {
-	girasol = loadImage('img/girasol.png');
-	lanzaguisantes = loadImage('img/lanzaguisantes.png');
-	zombie = loadImage('img/zombie.png');
+	for (let i = 1; i <= 6; i++) {
+		girasol.push(loadImage(`img/plants/girasol/${i}.png`));
+	}
+	for (let i = 1; i <= 8; i++) {
+		lanzaguisantes.push(loadImage(`img/plants/lanzaguisantes/${i}.png`));
+	}
+	for (let i = 1; i <= 5; i++) {
+		repetidora.push(loadImage(`img/plants/repetidora/${i}.png`));
+	}
+	for (let i = 1; i <= 3; i++) {
+		nuez.push(loadImage(`img/plants/nuez/${i}.png`));
+	}
+	for (let i = 1; i <= 13; i++) {
+		zombie.walk.push(loadImage(`img/zombies/zombie/walk/${i}.png`));
+	}
+	for (let i = 1; i <= 6; i++) {
+		zombie.eat.push(loadImage(`img/zombies/zombie/eat/${i}.png`));
+	}
+	for (let i = 1; i <= 18; i++) {
+		zombieFlag.walk.push(loadImage(`img/zombies/zombieFlag/walk/${i}.png`));
+	}
+	for (let i = 1; i <= 6; i++) {
+		zombieFlag.eat.push(loadImage(`img/zombies/zombieFlag/eat/${i}.png`));
+	}
 	sol = loadImage('img/sol.png');
-	grass1 = loadImage('img/grass1.png');
-	grass2 = loadImage('img/grass2.png');
-	grass3 = loadImage('img/grass3.png');
+	grass1 = loadImage('img/grass1.jpg');
+	grass2 = loadImage('img/grass2.jpg');
+	floor = loadImage('img/floor.jpg');
+	lawnmower = loadImage('img/lawnmower.png');
 }
 
 function setup() {
-	createCanvas(900, 500);
+	createCanvas(window.innerWidth - 100, window.innerHeight);
 	height_ = height / 5;
 	width_ = width / 10;
-	console.log(width_);
+	for (let i = 0; i < 5; i++) {
+		podadoras.push(new Podadora(0, height_ * i + 30));
+	}
+
+	generarZombies();
 }
 
 function draw() {
-	background(0);
-	map.draw();
+	if (!perdiste) {
+		background(0);
+		map.draw();
 
-	if (tiempoRecarga > 0) {
-		tiempoRecarga--;
-	}
-
-	// Mostrar y mover los zombies
-	for (let z of zombies) {
-		z.mostrar();
-		if (!z.colision(plants)) {
-			z.mover();
+		if (tiempoRecarga > 0) {
+			tiempoRecarga--;
 		}
-		if (z.vida <= 0) {
-			let index = zombies.indexOf(z);
-			zombies.splice(index, 1);
+
+		if (frameCount % (60 * 7) == 0) {
+			let x = Math.floor(random(width_, width - width_ * 3));
+			let y = Math.floor(random(height_ * 2));
+			soles.push(new Sol(x, y));
 		}
-	}
 
-	// Mostrar las plantas y actualizar los proyectiles
-	for (let p of plants) {
-		p.mostrar();
-		p.actualizarProyectiles(zombies);
-		p.detectarZombies(zombies);
+		// Mostrar las plantas y actualizar los proyectiles
+		for (let p of plantas) {
+			p.mostrar();
+			p.actualizarProyectiles(zombies);
+			p.detectarZombies(zombies);
 
-		if (p instanceof Girasol) {
-			for (let i = p.proyectiles.length - 1; i >= 0; i--) {
-				let s = p.proyectiles[i];
-				if (millis() - s.tiempoVida >= 15000) {
-					p.proyectiles.splice(i, 1);
+			if (p instanceof Girasol) {
+				for (let i = p.proyectiles.length - 1; i >= 0; i--) {
+					let s = p.proyectiles[i];
+					if (millis() - s.tiempoVida >= 15000) {
+						p.proyectiles.splice(i, 1);
+					}
+				}
+			}
+			if (p.vida <= 0) {
+				let index = plantas.indexOf(p);
+				map.mapa[p.fila][p.columna] = false;
+				plantas.splice(index, 1);
+			}
+		}
+		for (let z of zombies) {
+			if (z.x <= 0) {
+				perdiste = true;
+				z.imgEat = zombie.eat;
+				zombieP = z;
+			}
+			z.mostrar();
+			if (!z.colision(plantas)) {
+				z.mover();
+			}
+
+			if (z.vida <= 0) {
+				let index = zombies.indexOf(z);
+				zombies.splice(index, 1);
+			}
+		}
+
+		if (podadoras) {
+			for (let po of podadoras) {
+				po.mostrar();
+				po.colision(zombies);
+				if (po.x > width) {
+					let index = podadoras.indexOf(po);
+					podadoras.splice(index, 1);
 				}
 			}
 		}
+		for (let s of soles) {
+			s.mostrar();
+		}
+		marcadorSoles.innerText = contadorSoles;
+		actualizarRonda();
+		fill(0); // Establece el color del texto a blanco
+		textSize(20); // Establece el tamaño del texto a 24
+		text('Ronda: ' + rondaActual, width - 200, 100); // Dibuja el texto en la posición (10, 30)
+	} else {
+		fill(0);
+		textSize(100);
+		text('Perdiste', width_ * 4, height_ * 3 - 30);
+		circle(zombieP.x + width_ / 2, zombieP.y + height_ / 2, width_ * 1.5);
+		zombieP.img = zombie.eat;
+		zombieP.mostrar();
 	}
-	marcadorSoles.innerText = contadorSoles;
 }
 
 function mouseClicked() {
 	if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) {
 		return;
 	}
-	for (let p of plants) {
+	for (let s of soles) {
+		if (s instanceof Sol) {
+			if (dist(mouseX, mouseY, s.x, s.y) < 40) {
+				let index = soles.indexOf(s);
+				contadorSoles += 50;
+				soles.splice(index, 1);
+				return;
+			}
+		}
+	}
+	for (let p of plantas) {
 		if (p instanceof Girasol) {
 			for (let i = 0; i < p.proyectiles.length; i++) {
 				let sol = p.proyectiles[i];
 				let distancia = dist(mouseX, mouseY, sol.x + 20, sol.y + 20);
 				if (distancia < 20) {
-					contadorSoles += 25;
+					contadorSoles += 50;
 					p.proyectiles.splice(i, 1);
 					return;
 				}
@@ -236,7 +438,7 @@ function mouseClicked() {
 		}
 	}
 
-	if (seleccionado && tiempoRecarga <= 0) {
+	if (seleccionado && tiempoRecarga <= 0 && mouseX > width_) {
 		let fila = Math.floor(mouseY / height_); // Redondea a la fila más cercana
 		let columna = Math.floor(mouseX / width_); // Redondea a la columna más cercana
 
@@ -248,21 +450,89 @@ function mouseClicked() {
 		let x = columna * width_ + width_ / 2;
 		let y = fila * height_ + height_ / 2;
 		let planta;
-		if (seleccionado === 'girasol') {
-			planta = new Girasol(x, y);
-			tiempoRecarga = 90; // Tiempo de recarga para el girasol
-		} else if (seleccionado === 'lanzaguisantes') {
-			planta = new Plant(x, y);
-			tiempoRecarga = 60; // Tiempo de recarga para la planta lanzaguisantes
+		switch (seleccionado) {
+			case 'girasol':
+				if (contadorSoles >= 50) {
+					planta = new Girasol(
+						x,
+						y,
+						columna,
+						fila,
+						girasol,
+						width_ - 50,
+						height_ - 50
+					);
+					tiempoRecarga = 90;
+					contadorSoles -= 50;
+					deseleccionar();
+				} else {
+					deseleccionar();
+					return;
+				}
+				break;
+			case 'lanzaguisantes':
+				if (contadorSoles >= 100) {
+					planta = new Plantas(
+						x,
+						y,
+						columna,
+						fila,
+						lanzaguisantes,
+						width_ - 50,
+						height_ - 50
+					);
+					tiempoRecarga = 60;
+					contadorSoles -= 100;
+					deseleccionar();
+				} else {
+					deseleccionar();
+					return;
+				}
+				break;
+			case 'repetidora':
+				if (contadorSoles >= 200) {
+					planta = new Girasol(
+						x,
+						y,
+						columna,
+						fila,
+						girasol,
+						width_ - 50,
+						height_ - 50
+					);
+					tiempoRecarga = 90;
+					contadorSoles -= 200;
+					deseleccionar();
+				} else {
+					deseleccionar();
+					return;
+				}
+				break;
+			case 'patatapum':
+				if (contadorSoles >= 25) {
+					planta = new Girasol(x, y, girasol, width_ - 50, height_ - 50);
+					tiempoRecarga = 90;
+					contadorSoles -= 25;
+					deseleccionar();
+				} else {
+					deseleccionar();
+					return;
+				}
+				break;
+			case 'nuez':
+				if (contadorSoles >= 50) {
+					planta = new Nuez(x, y, columna, fila, width_ - 40, height_ - 40);
+					tiempoRecarga = 90;
+					contadorSoles -= 50;
+					deseleccionar();
+				} else {
+					deseleccionar();
+					return;
+				}
+				break;
 		}
-		plants.push(planta);
-		map.mapa[fila][columna] = true; // Marcar la casilla como ocupada
-		document
-			.querySelector('input[name="plantas"]:checked')
-			.closest('div')
-			.classList.remove('selected');
-		document.querySelector('input[name="plantas"]:checked').checked = false;
-		seleccionado = null;
+		plantas.push(planta);
+		map.mapa[fila][columna] = true;
 	}
 }
 
@@ -270,16 +540,47 @@ document.addEventListener('change', (e) => {
 	seleccionado = e.target.value;
 });
 
+let rondaActual = 0;
+let nivelActual = 0;
 let contadorZombies = 0;
-let limiteZombies = 10;
-setInterval(() => {
-	if (contadorZombies < limiteZombies) {
+let limiteZombies = nivel[nivelActual][rondaActual];
+function generarZombies() {
+	// Obtiene el número de zombies para la ronda actual
+	let numZombies = nivel[nivelActual][rondaActual];
+
+	function generarZombie() {
+		let z = null;
 		let fila = Math.floor(random(5)); // Elige una fila aleatoria entre 0 y 4
-		let zombie = new Zombie(width, fila * height_);
-		zombies.push(zombie);
+		if (contadorZombies == 0) {
+			z = new Zombie(width, fila * height_, zombieFlag.walk, zombieFlag.eat);
+		} else {
+			z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
+		}
+		zombies.push(z);
 		contadorZombies++;
+
+		if (contadorZombies < numZombies) {
+			// Genera un retraso aleatorio
+			let retraso = random(3000, 10000); // Cambia este valor para ajustar el rango de retraso
+			setTimeout(generarZombie, retraso);
+		}
 	}
-}, 5000);
+
+	generarZombie();
+}
+
+function actualizarRonda() {
+	if (zombies.length === 0) {
+		rondaActual++;
+		contadorZombies = 0;
+		if (rondaActual >= nivel[nivelActual].length) {
+			rondaActual = 0;
+			nivelActual++;
+		}
+		limiteZombies = nivel[nivelActual][rondaActual].zombies;
+		generarZombies();
+	}
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 	let radios = document.querySelectorAll('input[type="radio"]');
@@ -295,3 +596,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 });
+
+function deseleccionar() {
+	let checkedInput = document.querySelector('input[name="plantas"]:checked');
+
+	checkedInput.closest('div').classList.remove('selected');
+	checkedInput.checked = false;
+	seleccionado = null;
+}
