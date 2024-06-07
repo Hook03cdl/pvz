@@ -387,30 +387,30 @@ function preload() {
 	}
 
 	// zombies
-	zombie.walk = loadImage('img/zombies/zombie/walk/1.png');
-	zombie.eat = loadImage('img/zombies/zombie/eat/1.png');
-	zombieFlag.eat = loadImage('img/zombies/zombieFlag/eat/1.png');
-	zombieFlag.walk = loadImage('img/zombies/zombieFlag/walk/1.png');
+	zombie.walk = loadImage('./img/zombies/zombie/walk/1.png');
+	zombie.eat = loadImage('./img/zombies/zombie/eat/1.png');
+	zombieFlag.eat = loadImage('./img/zombies/zombieFlag/eat/1.png');
+	zombieFlag.walk = loadImage('./img/zombies/zombieFlag/walk/1.png');
 
 	for (let i = 1; i <= 3; i++) {
-		zombieBucket.walk.push(loadImage(`img/zombies/zombieBucket/walk/${i}.png`));
-		zombieBucket.eat.push(loadImage(`img/zombies/zombieBucket/eat/${i}.png`));
+		zombieBucket.walk.push(loadImage(`./img/zombies/zombieBucket/walk/${i}.png`));
+		zombieBucket.eat.push(loadImage(`./img/zombies/zombieBucket/eat/${i}.png`));
 
-		zombieCone.walk.push(loadImage(`img/zombies/zombieCone/walk/${i}.png`));
-		zombieCone.eat.push(loadImage(`img/zombies/zombieCone/eat/${i}.png`));
+		zombieCone.walk.push(loadImage(`./img/zombies/zombieCone/walk/${i}.png`));
+		zombieCone.eat.push(loadImage(`./img/zombies/zombieCone/eat/${i}.png`));
 	}
 
-	zombieBucket.walk.push(loadImage(`img/zombies/zombie/walk/1.png`));
-	zombieBucket.eat.push(loadImage(`img/zombies/zombie/eat/1.png`));
+	zombieBucket.walk.push(loadImage(`./img/zombies/zombie/walk/1.png`));
+	zombieBucket.eat.push(loadImage(`./img/zombies/zombie/eat/1.png`));
 
-	zombieCone.walk.push(loadImage(`img/zombies/zombie/walk/1.png`));
-	zombieCone.eat.push(loadImage(`img/zombies/zombie/eat/1.png`));
+	zombieCone.walk.push(loadImage(`./img/zombies/zombie/walk/1.png`));
+	zombieCone.eat.push(loadImage(`./img/zombies/zombie/eat/1.png`));
 
-	sol = loadImage('img/sol.png');
-	grass1 = loadImage('img/grass1.jpg');
-	grass2 = loadImage('img/grass2.jpg');
-	floor = loadImage('img/floor.jpg');
-	lawnmower = loadImage('img/lawnmower.png');
+	sol = loadImage('./img/sol.png');
+	grass1 = loadImage('./img/grass1.jpg');
+	grass2 = loadImage('./img/grass2.jpg');
+	floor = loadImage('./img/floor.jpg');
+	lawnmower = loadImage('./img/lawnmower.png');
 }
 
 function setup() {
