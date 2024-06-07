@@ -5,8 +5,8 @@ let nuez = [];
 let patatapum = [];
 let zombie = { eat: null, walk: null };
 let zombieFlag = { eat: null, walk: null };
-let zombieBucket = { eat: null, walk: null };
-let zombieCone = { eat: null, walk: null };
+let zombieBucket = { eat: [], walk: [] };
+let zombieCone = { eat: [], walk: [] };
 let floor = null;
 let grass1 = null,
 	grass2 = null;
@@ -277,7 +277,52 @@ class Zombie {
 class ZombieBucket extends Zombie {
 	constructor(x, y, imgWalk, imgEat) {
 		super(x, y, imgWalk, imgEat);
+		this.vida = 40;
+		this.currentImg = 0;
+	}
+	mostrar() {
+		if (this.img[this.currentImg] !== undefined) {
+			image(
+				this.img[this.currentImg],
+				this.x,
+				this.y,
+				width_ - 20,
+				height_ - 20
+			);
+		}
+		if (this.vida == 30) {
+			this.currentImg = 1;
+		} else if (this.vida == 20) {
+			this.currentImg = 2;
+		} else if (this.vida == 10) {
+			this.currentImg = 3;
+		}
+	}
+}
+class ZombieCone extends Zombie {
+	constructor(x, y, imgWalk, imgEat) {
+		super(x, y, imgWalk, imgEat);
 		this.vida = 30;
+		this.currentImg = 0;
+	}
+	mostrar() {
+		if (this.img[this.currentImg] !== undefined) {
+			image(
+				this.img[this.currentImg],
+				this.x,
+				this.y,
+				width_ - 20,
+				height_ - 20
+			);
+		}
+
+		if (this.vida == 23) {
+			this.currentImg = 1;
+		} else if (this.vida == 15) {
+			this.currentImg = 2;
+		} else if (this.vida == 10) {
+			this.currentImg = 3;
+		}
 	}
 }
 
@@ -316,7 +361,7 @@ var height_;
 var width_;
 let seleccionado = null;
 let tiempoRecarga = 0;
-let contadorSoles = 300;
+let contadorSoles = 3000;
 let marcadorSoles;
 let perdiste = false;
 let zombieP = null;
@@ -342,16 +387,24 @@ function preload() {
 	}
 
 	// zombies
-	zombie.eat = loadImage('img/zombies/zombie/eat/1.png');
 	zombie.walk = loadImage('img/zombies/zombie/walk/1.png');
+	zombie.eat = loadImage('img/zombies/zombie/eat/1.png');
 	zombieFlag.eat = loadImage('img/zombies/zombieFlag/eat/1.png');
 	zombieFlag.walk = loadImage('img/zombies/zombieFlag/walk/1.png');
 
-	zombieBucket.walk = loadImage('img/zombies/zombieBucket/walk/1.png');
-	zombieBucket.eat = loadImage('img/zombies/zombieBucket/walk/1.png');
+	for (let i = 1; i <= 3; i++) {
+		zombieBucket.walk.push(loadImage(`img/zombies/zombieBucket/walk/${i}.png`));
+		zombieBucket.eat.push(loadImage(`img/zombies/zombieBucket/eat/${i}.png`));
 
-	zombieCone.eat = loadImage('img/zombies/zombieFlag/eat/1.png');
-	zombieCone.walk = loadImage('img/zombies/zombieFlag/walk/1.png');
+		zombieCone.walk.push(loadImage(`img/zombies/zombieCone/walk/${i}.png`));
+		zombieCone.eat.push(loadImage(`img/zombies/zombieCone/eat/${i}.png`));
+	}
+
+	zombieBucket.walk.push(loadImage(`img/zombies/zombie/walk/1.png`));
+	zombieBucket.eat.push(loadImage(`img/zombies/zombie/eat/1.png`));
+
+	zombieCone.walk.push(loadImage(`img/zombies/zombie/walk/1.png`));
+	zombieCone.eat.push(loadImage(`img/zombies/zombie/eat/1.png`));
 
 	sol = loadImage('img/sol.png');
 	grass1 = loadImage('img/grass1.jpg');
@@ -614,18 +667,27 @@ function generarZombies() {
 		if (contadorZombies == 0) {
 			z = new Zombie(width, fila * height_, zombieFlag.walk, zombieFlag.eat);
 		} else {
-			let zRandom = Math.floor(random(0, 10));
-			switch (zRandom) {
-				case 1 || 2:
-					z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
-					break;
-				case 3 || 4:
-					z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
-					break;
-
-				default:
-					z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
-					break;
+			let zRandom = Math.floor(random(10));
+			console.log(zRandom);
+			if ((zRandom == 1 || zRandom == 2) && nivelActual > 1) {
+				z = new ZombieBucket(
+					width,
+					fila * height_,
+					zombieBucket.walk,
+					zombieBucket.eat
+				);
+			} else if (
+				(zRandom == 3 || zRandom == 4 || zRandom == 5) &&
+				nivelActual > 0
+			) {
+				z = new ZombieCone(
+					width,
+					fila * height_,
+					zombieCone.walk,
+					zombieCone.eat
+				);
+			} else {
+				z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
 			}
 		}
 		zombies.push(z);
@@ -649,6 +711,10 @@ function actualizarRonda() {
 		if (rondaActual >= nivel[nivelActual].length) {
 			rondaActual = 0;
 			nivelActual++;
+			let card = document.querySelector(`.hidden${nivelActual}`);
+			if (card) {
+				card.classList.remove(`hidden${nivelActual}`);
+			}
 		}
 
 		if (nivelActual >= nivel.length) {
