@@ -361,7 +361,7 @@ var height_;
 var width_;
 let seleccionado = null;
 let tiempoRecarga = 0;
-let contadorSoles = 3000;
+let contadorSoles = 300;
 let marcadorSoles;
 let perdiste = false;
 let zombieP = null;
