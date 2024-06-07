@@ -34,17 +34,18 @@ class Sol {
 }
 
 class Podadora {
-	constructor(x, y) {
+	constructor(x, y, img) {
 		this.x = x;
 		this.y = y;
 		this.isColision = false;
 		this.velocidad = 5;
+		this.img = img;
 	}
 	mostrar() {
 		if (this.isColision) {
 			this.x += this.velocidad;
 		}
-		image(lawnmower, this.x, this.y, width_, height_ - 50);
+		image(this.img, this.x, this.y, width_, height_ - 50);
 	}
 	colision(zombie) {
 		for (let z of zombie) {
@@ -393,7 +394,9 @@ function preload() {
 	zombieFlag.walk = loadImage('./img/zombies/zombieFlag/walk/1.png');
 
 	for (let i = 1; i <= 3; i++) {
-		zombieBucket.walk.push(loadImage(`./img/zombies/zombieBucket/walk/${i}.png`));
+		zombieBucket.walk.push(
+			loadImage(`./img/zombies/zombieBucket/walk/${i}.png`)
+		);
 		zombieBucket.eat.push(loadImage(`./img/zombies/zombieBucket/eat/${i}.png`));
 
 		zombieCone.walk.push(loadImage(`./img/zombies/zombieCone/walk/${i}.png`));
@@ -418,7 +421,7 @@ function setup() {
 	height_ = height / 5;
 	width_ = width / 10;
 	for (let i = 0; i < 5; i++) {
-		podadoras.push(new Podadora(0, height_ * i + 30));
+		podadoras.push(new Podadora(0, height_ * i + 30, lawnmower));
 	}
 
 	generarZombies();
