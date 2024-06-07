@@ -2,10 +2,11 @@ let girasol = [];
 let lanzaguisantes = [];
 let repetidora = [];
 let nuez = [];
-let zombie = { eat: [], walk: [] };
-let zombieFlag = { eat: [], walk: [] };
-let zombieBucket = { eat: [], walk: [] };
-let zombieCone = { eat: [], walk: [] };
+let patatapum = [];
+let zombie = { eat: null, walk: null };
+let zombieFlag = { eat: null, walk: null };
+let zombieBucket = { eat: null, walk: null };
+let zombieCone = { eat: null, walk: null };
 let floor = null;
 let grass1 = null,
 	grass2 = null;
@@ -14,8 +15,8 @@ let lawnmower = null;
 let sol = null;
 let nivel = [
 	[10, 15, 20],
-	[15, 20, 25],
-	[20, 25, 30],
+	[25, 30, 35],
+	[25, 30, 35],
 ];
 
 class Sol {
@@ -56,10 +57,10 @@ class Podadora {
 }
 
 class Plantas {
-	constructor(x, y, columna, fila, img, width_ = 50, height_ = 60, vida = 10) {
+	constructor(x, y, columna, fila, img, width_ = 50, height_ = 60, vida = 5) {
 		this.x = x - width_ / 2;
 		this.y = y - height_ / 2;
-		this.velocidad = 10;
+		this.velocidad = 7;
 		this.proyectiles = [];
 		this.rango = width;
 		this.width_ = width_;
@@ -72,17 +73,6 @@ class Plantas {
 	}
 
 	mostrar() {
-		// fill('green');
-		// rect(this.x, this.y, this.width_, this.height_);
-		if (this.img[this.currentImg] !== undefined) {
-			image(
-				this.img[this.currentImg],
-				this.x,
-				this.y,
-				this.width_,
-				this.height_
-			);
-		}
 		if (frameCount % 12 == 0) {
 			this.currentImg++;
 		}
@@ -93,10 +83,11 @@ class Plantas {
 			fill('#91ce2d');
 			circle(proyectil.x, proyectil.y + 25, 25);
 		});
+		image(this.img[this.currentImg], this.x, this.y, this.width_, this.height_);
 	}
 
 	shot() {
-		this.proyectiles.push({ x: this.x + this.width_, y: this.y });
+		this.proyectiles.push({ x: this.x + 30, y: this.y });
 	}
 
 	actualizarProyectiles(zombies) {
@@ -180,22 +171,71 @@ class Girasol extends Plantas {
 	actualizarProyectiles(zombies) {}
 }
 class Nuez extends Plantas {
-	constructor(x, y, columna, fila, width_, height_) {
-		super(x, y, columna, fila, width_, height_);
-		this.vida = 20;
+	constructor(x, y, columna, fila, img, width_, height_) {
+		super(x, y, columna, fila, img, width_, height_);
+		this.vida = 40;
 		this.currentImg = 0;
 	}
 	mostrar() {
-		image(nuez[this.currentImg], this.x, this.y, width_, height_);
-		if (frameCount % 40 == 0) {
-			this.currentImg++;
+		if (this.img[this.currentImg] !== undefined) {
+			image(
+				this.img[this.currentImg],
+				this.x,
+				this.y,
+				this.width_,
+				this.height_
+			);
 		}
-		if (this.currentImg >= nuez.length - 1) {
-			this.currentImg = 0;
+		if (this.vida == Math.floor(this.vida * 0.8)) {
+			this.currentImg = 1;
+		} else if (this.vida == Math.floor(this.vida * 0.5)) {
+			this.currentImg = 2;
 		}
 	}
 	detectarZombies(zombies) {}
 	actualizarProyectiles(zombies) {}
+}
+class Patatapum extends Plantas {
+	constructor(x, y, columna, fila, img, width_, height_) {
+		super(x, y, columna, fila, img, width_, height_);
+		this.isActive = false;
+		this.activationTime = millis() + 13000;
+		this.currentImg = 0;
+	}
+	mostrar() {
+		image(this.img[this.currentImg], this.x, this.y, this.width_, this.height_);
+	}
+	detectarZombies(zombies) {
+		if (millis() >= this.activationTime) {
+			this.isActive = true;
+			this.currentImg = 1;
+		}
+		if (this.isActive) {
+			for (const z of zombies) {
+				if (dist(this.x, this.y, z.x, z.y) < 40) {
+					z.vida = 0;
+					map.mapa[this.fila][this.columna] = false;
+					let index = plantas.indexOf(this);
+					plantas.splice(index, 1);
+				}
+			}
+		}
+	}
+	actualizarProyectiles(zombies) {}
+}
+class Repetidora extends Plantas {
+	constructor(x, y, columna, fila, img, width_, height_) {
+		super(x, y, columna, fila, img, width_, height_);
+		this.vida = 10;
+		this.lastShotTime = 0;
+		this.shotCounter = 0;
+	}
+	shot() {
+		this.proyectiles.push({ x: this.x + 30, y: this.y });
+		setTimeout(() => {
+			this.proyectiles.push({ x: this.x + 30, y: this.y });
+		}, 100);
+	}
 }
 class Zombie {
 	constructor(x, y, imgWalk, imgEat) {
@@ -210,15 +250,7 @@ class Zombie {
 	}
 
 	mostrar() {
-		if (this.img[this.currentImg] !== undefined) {
-			image(this.img[this.currentImg], this.x, this.y, width_, height_);
-		}
-		if (frameCount % 12 == 0) {
-			this.currentImg++;
-		}
-		if (this.currentImg >= this.img.length - 1) {
-			this.currentImg = 0;
-		}
+		image(this.img, this.x, this.y, width_ - 20, height_ - 20);
 	}
 
 	mover() {
@@ -229,7 +261,11 @@ class Zombie {
 			if (dist(this.x, this.y, p.x, p.y) < 30) {
 				this.img = this.imgEat;
 				if (frameCount % 60 == 0) {
+					p.blinking = true; // Activa el parpadeo
 					p.vida--;
+					setTimeout(() => {
+						p.blinking = false;
+					}, 1000);
 				}
 				return true;
 			}
@@ -239,8 +275,9 @@ class Zombie {
 	}
 }
 class ZombieBucket extends Zombie {
-	constructor() {
-		super(x, y);
+	constructor(x, y, imgWalk, imgEat) {
+		super(x, y, imgWalk, imgEat);
+		this.vida = 30;
 	}
 }
 
@@ -279,11 +316,11 @@ var height_;
 var width_;
 let seleccionado = null;
 let tiempoRecarga = 0;
-let contadorSoles = 200;
+let contadorSoles = 300;
 let marcadorSoles;
 let perdiste = false;
 let zombieP = null;
-
+let finish = false;
 document.addEventListener('DOMContentLoaded', () => {
 	marcadorSoles = document.querySelector('.soles');
 });
@@ -300,18 +337,22 @@ function preload() {
 	for (let i = 1; i <= 3; i++) {
 		nuez.push(loadImage(`img/plants/nuez/${i}.png`));
 	}
-	for (let i = 1; i <= 13; i++) {
-		zombie.walk.push(loadImage(`img/zombies/zombie/walk/${i}.png`));
+	for (let i = 1; i <= 2; i++) {
+		patatapum.push(loadImage(`img/plants/patatapum/${i}.png`));
 	}
-	for (let i = 1; i <= 6; i++) {
-		zombie.eat.push(loadImage(`img/zombies/zombie/eat/${i}.png`));
-	}
-	for (let i = 1; i <= 18; i++) {
-		zombieFlag.walk.push(loadImage(`img/zombies/zombieFlag/walk/${i}.png`));
-	}
-	for (let i = 1; i <= 6; i++) {
-		zombieFlag.eat.push(loadImage(`img/zombies/zombieFlag/eat/${i}.png`));
-	}
+
+	// zombies
+	zombie.eat = loadImage('img/zombies/zombie/eat/1.png');
+	zombie.walk = loadImage('img/zombies/zombie/walk/1.png');
+	zombieFlag.eat = loadImage('img/zombies/zombieFlag/eat/1.png');
+	zombieFlag.walk = loadImage('img/zombies/zombieFlag/walk/1.png');
+
+	zombieBucket.walk = loadImage('img/zombies/zombieBucket/walk/1.png');
+	zombieBucket.eat = loadImage('img/zombies/zombieBucket/walk/1.png');
+
+	zombieCone.eat = loadImage('img/zombies/zombieFlag/eat/1.png');
+	zombieCone.walk = loadImage('img/zombies/zombieFlag/walk/1.png');
+
 	sol = loadImage('img/sol.png');
 	grass1 = loadImage('img/grass1.jpg');
 	grass2 = loadImage('img/grass2.jpg');
@@ -331,7 +372,11 @@ function setup() {
 }
 
 function draw() {
-	if (!perdiste) {
+	if (finish) {
+		fill(0);
+		textSize(100);
+		text('Haz Ganado', width_ * 4, height_ * 3 - 30);
+	} else if (!perdiste) {
 		background(0);
 		map.draw();
 
@@ -347,9 +392,9 @@ function draw() {
 
 		// Mostrar las plantas y actualizar los proyectiles
 		for (let p of plantas) {
-			p.mostrar();
-			p.actualizarProyectiles(zombies);
 			p.detectarZombies(zombies);
+			p.actualizarProyectiles(zombies);
+			p.mostrar();
 
 			if (p instanceof Girasol) {
 				for (let i = p.proyectiles.length - 1; i >= 0; i--) {
@@ -399,7 +444,7 @@ function draw() {
 		actualizarRonda();
 		fill(0); // Establece el color del texto a blanco
 		textSize(20); // Establece el tamaño del texto a 24
-		text('Ronda: ' + rondaActual, width - 200, 100); // Dibuja el texto en la posición (10, 30)
+		text('Ronda: ' + nivelActual, width - 200, 100); // Dibuja el texto en la posición (10, 30)
 	} else {
 		fill(0);
 		textSize(100);
@@ -491,12 +536,12 @@ function mouseClicked() {
 				break;
 			case 'repetidora':
 				if (contadorSoles >= 200) {
-					planta = new Girasol(
+					planta = new Repetidora(
 						x,
 						y,
 						columna,
 						fila,
-						girasol,
+						repetidora,
 						width_ - 50,
 						height_ - 50
 					);
@@ -510,7 +555,15 @@ function mouseClicked() {
 				break;
 			case 'patatapum':
 				if (contadorSoles >= 25) {
-					planta = new Girasol(x, y, girasol, width_ - 50, height_ - 50);
+					planta = new Patatapum(
+						x,
+						y,
+						columna,
+						fila,
+						patatapum,
+						width_ - 50,
+						height_ - 50
+					);
 					tiempoRecarga = 90;
 					contadorSoles -= 25;
 					deseleccionar();
@@ -521,7 +574,15 @@ function mouseClicked() {
 				break;
 			case 'nuez':
 				if (contadorSoles >= 50) {
-					planta = new Nuez(x, y, columna, fila, width_ - 40, height_ - 40);
+					planta = new Nuez(
+						x,
+						y,
+						columna,
+						fila,
+						nuez,
+						width_ - 50,
+						height_ - 50
+					);
 					tiempoRecarga = 90;
 					contadorSoles -= 50;
 					deseleccionar();
@@ -543,7 +604,6 @@ document.addEventListener('change', (e) => {
 let rondaActual = 0;
 let nivelActual = 0;
 let contadorZombies = 0;
-let limiteZombies = nivel[nivelActual][rondaActual];
 function generarZombies() {
 	// Obtiene el número de zombies para la ronda actual
 	let numZombies = nivel[nivelActual][rondaActual];
@@ -554,7 +614,19 @@ function generarZombies() {
 		if (contadorZombies == 0) {
 			z = new Zombie(width, fila * height_, zombieFlag.walk, zombieFlag.eat);
 		} else {
-			z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
+			let zRandom = Math.floor(random(0, 10));
+			switch (zRandom) {
+				case 1 || 2:
+					z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
+					break;
+				case 3 || 4:
+					z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
+					break;
+
+				default:
+					z = new Zombie(width, fila * height_, zombie.walk, zombie.eat);
+					break;
+			}
 		}
 		zombies.push(z);
 		contadorZombies++;
@@ -573,12 +645,17 @@ function actualizarRonda() {
 	if (zombies.length === 0) {
 		rondaActual++;
 		contadorZombies = 0;
+
 		if (rondaActual >= nivel[nivelActual].length) {
 			rondaActual = 0;
 			nivelActual++;
 		}
-		limiteZombies = nivel[nivelActual][rondaActual].zombies;
-		generarZombies();
+
+		if (nivelActual >= nivel.length) {
+			finish = true;
+		} else {
+			setTimeout(generarZombies(), 4000);
+		}
 	}
 }
 
